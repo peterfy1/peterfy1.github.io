@@ -175,12 +175,36 @@ function getPortfolioData(forceRefresh) {
 
 /**
  * Scans files within a specific folder and appends them to the assets list.
+ * Supports Google Drive Shortcuts, companion poster images for videos, and metadata.
  */
 function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
-  const files = folder.getFiles();
+  const filesIter = folder.getFiles();
+  const fileList = [];
+  const imageMap = {}; // Maps baseName -> fileId for custom video covers
+  let folderCoverId = '';
 
-  while (files.hasNext()) {
-    const file = files.next();
+  // First pass: collect files and map potential companion posters / covers
+  while (filesIter.hasNext()) {
+    const f = filesIter.next();
+    const fName = f.getName();
+    const fLower = fName.toLowerCase();
+    const fMime = f.getMimeType();
+
+    // Check if it's an image
+    if (fMime.startsWith('image/') || /\.(jpg|jpeg|png|webp|gif)$/i.test(fLower)) {
+      if (fLower === 'cover.jpg' || fLower === 'cover.png' || fLower === 'poster.jpg' || fLower === 'poster.png') {
+        folderCoverId = f.getId();
+      } else {
+        const base = fLower.replace(/\.[^/.]+$/, '').replace(/(_thumb|_poster|_cover)$/, '');
+        imageMap[base] = f.getId();
+      }
+    }
+    fileList.push(f);
+  }
+
+  // Second pass: process assets
+  for (let i = 0; i < fileList.length; i++) {
+    const file = fileList[i];
     const name = file.getName();
     const lowerName = name.toLowerCase();
 
@@ -192,19 +216,19 @@ function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
       } catch (e) {
         // Ignore read error
       }
-      continue; // Don't list as gallery card
+      continue;
     }
 
     // Check if file is an avatar / profile image (e.g. avatar.jpg, profile.png)
     if (hooks && hooks.onAvatarFound && (lowerName.startsWith('avatar.') || lowerName.startsWith('profile.'))) {
       hooks.onAvatarFound('https://lh3.googleusercontent.com/d/' + file.getId());
-      continue; // Don't list as gallery card
+      continue;
     }
 
     // Check if file is a cover / banner image (e.g. cover.jpg, banner.png)
     if (hooks && hooks.onCoverFound && (lowerName.startsWith('cover.') || lowerName.startsWith('banner.'))) {
       hooks.onCoverFound('https://lh3.googleusercontent.com/d/' + file.getId());
-      continue; // Don't list as gallery card
+      continue;
     }
 
     // Skip hidden files or system files
@@ -212,15 +236,41 @@ function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
       continue;
     }
 
-    const mime = file.getMimeType();
-    const fileId = file.getId();
-    const size = file.getSize();
-    const type = detectAssetType(mime, name);
+    let fileId = file.getId();
+    let mime = file.getMimeType();
+    let size = file.getSize();
 
-    // Optimized URLs for Google Drive assets
-    // Direct Google CDN for public images
+    // 1. Resolve Google Drive Shortcut if applicable
+    if (mime === 'application/vnd.google-apps.shortcut') {
+      try {
+        if (file.getTargetId) {
+          const targetId = file.getTargetId();
+          if (targetId) {
+            const targetFile = DriveApp.getFileById(targetId);
+            fileId = targetId;
+            mime = targetFile.getMimeType();
+            size = targetFile.getSize();
+          }
+        }
+      } catch (shortcutErr) {
+        Logger.log('Could not resolve shortcut target for ' + name + ': ' + shortcutErr);
+      }
+    }
+
+    const type = detectAssetType(mime, name);
+    const cleanBase = lowerName.replace(/\.[^/.]+$/, '').replace(/(_thumb|_poster|_cover)$/, '');
+
+    // Check for paired companion poster image
+    let posterUrl = '';
+    if (imageMap[cleanBase]) {
+      posterUrl = 'https://lh3.googleusercontent.com/d/' + imageMap[cleanBase];
+    } else if (folderCoverId) {
+      posterUrl = 'https://lh3.googleusercontent.com/d/' + folderCoverId;
+    }
+
+    // Direct Google CDN for public assets
     const cdnUrl = 'https://lh3.googleusercontent.com/d/' + fileId;
-    const thumbnailUrl = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000';
+    const thumbnailUrl = posterUrl || ('https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1200');
     const previewUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
     const viewUrl = file.getUrl();
     const downloadUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;
@@ -237,6 +287,7 @@ function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
       created: file.getDateCreated().toISOString(),
       lastUpdated: file.getLastUpdated().toISOString(),
       thumbnailUrl: thumbnailUrl,
+      posterUrl: posterUrl,
       cdnUrl: cdnUrl,
       previewUrl: previewUrl,
       viewUrl: viewUrl,

@@ -324,16 +324,26 @@
         />
       `;
     } else if (item.type === 'video') {
+      const posterImg = item.posterUrl || item.thumbnailUrl;
       posterHtml = `
+        <div class="video-slate">
+          <div class="video-badge">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="23 7 16 12 23 17 23 7"></polygon>
+              <rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect>
+            </svg>
+            <span>${escapeHtml(item.category)}</span>
+          </div>
+        </div>
         <img 
-          src="${item.thumbnailUrl}" 
+          src="${posterImg}" 
           alt="${escapeHtml(item.name)}" 
           loading="lazy" 
-          onerror="this.style.display='none'"
+          onerror="this.onerror=null; this.src='${item.cdnUrl}'; this.onerror=() => { this.style.opacity='0'; };"
         />
         <div class="play-glass">
           <div class="play-circle">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
               <polygon points="6 4 20 12 6 20 6 4"></polygon>
             </svg>
           </div>
