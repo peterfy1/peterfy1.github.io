@@ -1,0 +1,516 @@
+<script>
+  // State management
+  let portfolioData = null;
+  let activeCategory = 'All';
+  let activeType = 'all';
+  let searchQuery = '';
+  let activeSort = 'newest';
+  let currentModalIndex = -1;
+  let filteredItems = [];
+  let isPolling = false;
+
+  // Initialize on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    // Always force fresh fetch on initial page load / browser refresh
+    loadPortfolioData(true);
+
+    // Auto-check for updates every 15 seconds
+    setInterval(() => {
+      autoCheckForUpdates();
+    }, 15000);
+
+    // Auto-check immediately when tab gains focus (e.g. user switches back from Google Drive)
+    window.addEventListener('focus', () => {
+      autoCheckForUpdates();
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        autoCheckForUpdates();
+      }
+    });
+  });
+
+  /**
+   * Fetch portfolio data
+   */
+  function loadPortfolioData(forceRefresh = true) {
+    const syncBtn = document.getElementById('syncBtn');
+    if (syncBtn) syncBtn.classList.add('syncing');
+
+    if (typeof google !== 'undefined' && google.script && google.script.run) {
+      google.script.run
+        .withSuccessHandler((data) => {
+          if (syncBtn) syncBtn.classList.remove('syncing');
+          handleDataLoaded(data, forceRefresh);
+        })
+        .withFailureHandler((error) => {
+          if (syncBtn) syncBtn.classList.remove('syncing');
+          handleDataError(error);
+        })
+        .getPortfolioData(forceRefresh);
+    } else {
+      if (syncBtn) syncBtn.classList.remove('syncing');
+      console.warn('Connect to Google Apps Script to load live Drive assets.');
+    }
+  }
+
+  /**
+   * Background silent polling for newly added, renamed, or deleted assets
+   */
+  function autoCheckForUpdates() {
+    if (isPolling || typeof google === 'undefined' || !google.script) return;
+    isPolling = true;
+
+    google.script.run
+      .withSuccessHandler((freshData) => {
+        isPolling = false;
+        if (freshData && freshData.success) {
+          if (!portfolioData) {
+            handleDataLoaded(freshData, false);
+            return;
+          }
+
+          // Check if data changed in any way (items, categories, bio, avatar, cover)
+          const dataChanged = JSON.stringify(portfolioData.items) !== JSON.stringify(freshData.items) ||
+                              JSON.stringify(portfolioData.categories) !== JSON.stringify(freshData.categories) ||
+                              portfolioData.title !== freshData.title ||
+                              portfolioData.bio !== freshData.bio ||
+                              portfolioData.avatarUrl !== freshData.avatarUrl ||
+                              portfolioData.coverUrl !== freshData.coverUrl;
+
+          if (dataChanged) {
+            const oldCount = (portfolioData.items || []).length;
+            const newCount = (freshData.items || []).length;
+            portfolioData = freshData;
+            renderProfileHeader(freshData);
+            renderCategoryTabs(freshData.categories || ['All']);
+            renderPortfolio();
+
+            if (newCount > oldCount) {
+              showToast(`${newCount - oldCount} new work item(s) synced`);
+            } else {
+              showToast('Portfolio synced with Drive');
+            }
+          }
+        }
+      })
+      .withFailureHandler(() => {
+        isPolling = false;
+      })
+      .getPortfolioData(false);
+  }
+
+  /**
+   * Handles successfully loaded data
+   */
+  function handleDataLoaded(data, wasManualRefresh) {
+    if (!data || !data.success) {
+      renderErrorState(data ? data.message : 'Unable to load portfolio assets.');
+      return;
+    }
+
+    portfolioData = data;
+    renderProfileHeader(data);
+    renderCategoryTabs(data.categories || ['All']);
+    renderPortfolio();
+
+    if (wasManualRefresh) {
+      showToast('Portfolio updated');
+    }
+  }
+
+  function handleDataError(error) {
+    console.error('Error loading portfolio:', error);
+    renderErrorState('Unable to load portfolio assets. Please try again.');
+  }
+
+  /**
+   * Render Profile Header
+   */
+  function renderProfileHeader(data) {
+    // Title / Name
+    const nameEl = document.getElementById('profileName');
+    if (nameEl) {
+      nameEl.textContent = data.title || 'Peter Fayez';
+    }
+
+    // Headline / Bio
+    const headlineEl = document.getElementById('profileHeadline');
+    if (headlineEl) {
+      headlineEl.textContent = data.bio || data.description || 'Motion Graphics Designer & Video Editor | Software Engineering Student';
+    }
+
+    // Cover Image (if uploaded)
+    const bannerEl = document.getElementById('profileBanner');
+    if (bannerEl && data.coverUrl) {
+      bannerEl.style.backgroundImage = `url('${data.coverUrl}')`;
+    }
+
+    // Avatar (if avatar image exists or fallback initials monogram)
+    const avatarBox = document.getElementById('avatarBox');
+    if (avatarBox) {
+      if (data.avatarUrl) {
+        avatarBox.innerHTML = `<img src="${data.avatarUrl}" class="avatar-img" alt="Avatar" />`;
+      } else {
+        const initials = getInitials(data.title || 'PF');
+        avatarBox.innerHTML = `<span class="avatar-monogram">${initials}</span>`;
+      }
+    }
+
+    // Total Projects
+    const totalEl = document.getElementById('metaProjectsCount');
+    if (totalEl) {
+      const count = (data.items || []).length;
+      totalEl.textContent = `${count} ${count === 1 ? 'Project' : 'Projects'}`;
+    }
+
+    // Contact Email if bio contains email
+    const contactBtn = document.getElementById('contactBtn');
+    if (contactBtn && data.bio) {
+      const emailMatch = data.bio.match(/([a-zA-Z0-9._-]+@[a-zA-Z0-9._-]+\.[a-zA-Z0-9_-]+)/);
+      if (emailMatch) {
+        contactBtn.href = 'mailto:' + emailMatch[0];
+      }
+    }
+  }
+
+  /**
+   * Extract Initials from Name
+   */
+  function getInitials(name) {
+    const parts = name.trim().split(/\s+/);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+    return name.substring(0, 2).toUpperCase();
+  }
+
+  /**
+   * Render Behance-Style Category Tabs
+   */
+  function renderCategoryTabs(categories) {
+    const container = document.getElementById('navTabs') || document.getElementById('categoryRail');
+    if (!container) return;
+
+    container.innerHTML = '';
+    categories.forEach((cat) => {
+      const btn = document.createElement('button');
+      btn.className = `nav-tab-item ${activeCategory === cat ? 'active' : ''}`;
+      
+      const count = cat === 'All' 
+        ? (portfolioData.items || []).length 
+        : (portfolioData.items || []).filter(i => i.category === cat).length;
+
+      const label = cat === 'All' ? 'All Works' : cat;
+
+      btn.innerHTML = `
+        <span>${escapeHtml(label)}</span>
+        <span class="tab-badge">${count}</span>
+      `;
+
+      btn.onclick = () => {
+        activeCategory = cat;
+        renderCategoryTabs(categories);
+        renderPortfolio();
+      };
+
+      container.appendChild(btn);
+    });
+  }
+
+  /**
+   * Set asset media type filter
+   */
+  function setTypeFilter(type, el) {
+    activeType = type;
+    document.querySelectorAll('.type-pill, .type-segment-btn, .type-chip').forEach(btn => btn.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderPortfolio();
+  }
+
+  /**
+   * Search input listener
+   */
+  function handleSearch(query) {
+    searchQuery = query.toLowerCase().trim();
+    renderPortfolio();
+  }
+
+  /**
+   * Sort selector listener
+   */
+  function handleSort(sortBy) {
+    activeSort = sortBy;
+    renderPortfolio();
+  }
+
+  /**
+   * Render the portfolio item cards
+   */
+  function renderPortfolio() {
+    const grid = document.getElementById('projectsCanvas');
+    if (!grid || !portfolioData) return;
+
+    let items = [...(portfolioData.items || [])];
+
+    // 1. Filter by Category
+    if (activeCategory !== 'All') {
+      items = items.filter(item => item.category === activeCategory);
+    }
+
+    // 2. Filter by Type
+    if (activeType !== 'all') {
+      items = items.filter(item => item.type === activeType);
+    }
+
+    // 3. Search query
+    if (searchQuery) {
+      items = items.filter(item => 
+        (item.name && item.name.toLowerCase().includes(searchQuery)) ||
+        (item.rawName && item.rawName.toLowerCase().includes(searchQuery)) ||
+        (item.category && item.category.toLowerCase().includes(searchQuery))
+      );
+    }
+
+    // 4. Sorting
+    items.sort((a, b) => {
+      if (activeSort === 'newest') {
+        return new Date(b.lastUpdated).getTime() - new Date(a.lastUpdated).getTime();
+      } else if (activeSort === 'oldest') {
+        return new Date(a.lastUpdated).getTime() - new Date(b.lastUpdated).getTime();
+      } else if (activeSort === 'name') {
+        return a.name.localeCompare(b.name);
+      } else if (activeSort === 'size') {
+        return (b.sizeBytes || 0) - (a.sizeBytes || 0);
+      }
+      return 0;
+    });
+
+    filteredItems = items;
+
+    if (items.length === 0) {
+      const isFiltered = activeCategory !== 'All' || activeType !== 'all' || searchQuery.trim() !== '';
+      grid.innerHTML = `
+        <div class="gallery-empty">
+          <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          <h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 6px;">${isFiltered ? 'No projects found' : 'No assets uploaded yet'}</h4>
+          <p style="font-size: 0.9rem;">${isFiltered ? 'Try selecting another category or adjusting your search term.' : 'Drop your motion graphics reels, video edits, designs, or PDFs into your folder to showcase them here.'}</p>
+        </div>
+      `;
+      return;
+    }
+
+    grid.innerHTML = items.map((item, index) => renderCardHtml(item, index)).join('');
+  }
+
+  /**
+   * Generates Card HTML
+   */
+  function renderCardHtml(item, index) {
+    let posterHtml = '';
+
+    if (item.type === 'image') {
+      posterHtml = `
+        <img 
+          src="${item.thumbnailUrl}" 
+          alt="${escapeHtml(item.name)}" 
+          loading="lazy"
+          onerror="this.onerror=null; this.src='${item.cdnUrl}'"
+        />
+      `;
+    } else if (item.type === 'video') {
+      posterHtml = `
+        <img 
+          src="${item.thumbnailUrl}" 
+          alt="${escapeHtml(item.name)}" 
+          loading="lazy" 
+          onerror="this.style.display='none'"
+        />
+        <div class="play-glass">
+          <div class="play-circle">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+              <polygon points="6 4 20 12 6 20 6 4"></polygon>
+            </svg>
+          </div>
+        </div>
+      `;
+    } else {
+      let iconSvg = `
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+      `;
+      if (item.type === 'audio') {
+        iconSvg = `
+          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M9 18V5l12-2v13"></path>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="16" r="3"></circle>
+          </svg>
+        `;
+      }
+
+      posterHtml = `
+        <div class="doc-art">
+          ${iconSvg}
+          <span class="doc-label">${escapeHtml(item.mimeType.split('/')[1] || item.type)}</span>
+        </div>
+      `;
+    }
+
+    const delay = Math.min(index * 0.04, 0.32).toFixed(2);
+    return `
+      <div class="card-item" onclick="openModal(${index})" style="animation-delay: ${delay}s;">
+        <div class="card-poster">
+          ${posterHtml}
+        </div>
+        <div class="card-caption">
+          <div class="caption-text">
+            <div class="card-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+            <div class="card-subline">${escapeHtml(item.category)} • ${item.sizeFormatted}</div>
+          </div>
+          <div class="card-quick-actions" onclick="event.stopPropagation()">
+            <a href="${item.downloadUrl}" target="_blank" class="btn-quick-icon" title="Download Asset">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+            </a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  /**
+   * Modal Lightbox
+   */
+  function openModal(index) {
+    if (index < 0 || index >= filteredItems.length) return;
+    currentModalIndex = index;
+    const item = filteredItems[index];
+
+    const scrim = document.getElementById('lightboxScrim');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMeta = document.getElementById('modalMeta');
+    const lightboxView = document.getElementById('lightboxView');
+    const modalDownloadBtn = document.getElementById('modalDownloadBtn');
+
+    modalTitle.textContent = item.name;
+    modalMeta.textContent = `${item.category} • ${item.sizeFormatted} • ${new Date(item.lastUpdated).toLocaleDateString()}`;
+    
+    modalDownloadBtn.href = item.downloadUrl;
+
+    if (item.type === 'image') {
+      lightboxView.innerHTML = `
+        <img src="${item.cdnUrl}" onerror="this.src='${item.thumbnailUrl}'" alt="${escapeHtml(item.name)}" />
+      `;
+    } else if (item.type === 'video' || item.type === 'document') {
+      lightboxView.innerHTML = `
+        <iframe src="${item.previewUrl}" allow="autoplay" allowfullscreen></iframe>
+      `;
+    } else if (item.type === 'audio') {
+      lightboxView.innerHTML = `
+        <div style="padding: 40px; text-align: center;">
+          <audio controls autoplay style="width: 100%; max-width: 480px;">
+            <source src="${item.downloadUrl}" type="${item.mimeType}">
+            Your browser does not support audio playback.
+          </audio>
+        </div>
+      `;
+    } else {
+      lightboxView.innerHTML = `
+        <div style="padding: 50px; text-align: center; color: var(--text-primary);">
+          <h3 style="margin-bottom: 12px;">${escapeHtml(item.rawName)}</h3>
+          <a href="${item.downloadUrl}" target="_blank" class="btn-action btn-action-dark" style="background: #2563eb; color: #fff;">Download File</a>
+        </div>
+      `;
+    }
+
+    scrim.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeModal() {
+    const scrim = document.getElementById('lightboxScrim');
+    scrim.classList.remove('open');
+    document.body.style.overflow = 'auto';
+
+    const lightboxView = document.getElementById('lightboxView');
+    if (lightboxView) lightboxView.innerHTML = '';
+  }
+
+  function prevModal() {
+    if (currentModalIndex > 0) {
+      openModal(currentModalIndex - 1);
+    } else {
+      openModal(filteredItems.length - 1);
+    }
+  }
+
+  function nextModal() {
+    if (currentModalIndex < filteredItems.length - 1) {
+      openModal(currentModalIndex + 1);
+    } else {
+      openModal(0);
+    }
+  }
+
+  // Keyboard controls
+  document.addEventListener('keydown', (e) => {
+    const scrim = document.getElementById('lightboxScrim');
+    if (!scrim.classList.contains('open')) return;
+
+    if (e.key === 'Escape') closeModal();
+    if (e.key === 'ArrowLeft') prevModal();
+    if (e.key === 'ArrowRight') nextModal();
+  });
+
+  /**
+   * Share / Copy Link
+   */
+  function copyPortfolioLink() {
+    navigator.clipboard.writeText(window.location.href).then(() => {
+      showToast('Portfolio link copied to clipboard');
+    }).catch(() => {
+      showToast('Link ready to share');
+    });
+  }
+
+  function showToast(message) {
+    const toast = document.getElementById('toastBanner');
+    if (!toast) return;
+    toast.textContent = message;
+    toast.classList.add('show');
+    setTimeout(() => {
+      toast.classList.remove('show');
+    }, 3200);
+  }
+
+  function renderErrorState(message) {
+    const grid = document.getElementById('projectsCanvas');
+    if (grid) {
+      grid.innerHTML = `
+        <div class="gallery-empty" style="border: 1px dashed var(--border-color); border-radius: 12px; background: #ffffff; padding: 40px 20px;">
+          <h4 style="color: #dc2626; margin-bottom: 8px;">Unable to load portfolio</h4>
+          <p style="max-width: 500px; margin: 0 auto; font-size: 0.9rem;">${escapeHtml(message)}</p>
+        </div>
+      `;
+    }
+  }
+
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+
