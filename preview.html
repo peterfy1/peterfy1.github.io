@@ -1285,33 +1285,32 @@
   let currentModalIndex = -1;
   let filteredItems = [];
   let isPolling = false;
+  let activeAbortController = null;
 
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', () => {
-    // Always force fresh fetch on initial page load / browser refresh
-    loadPortfolioData(true);
-
-    // Auto-check for updates every 15 seconds
-    setInterval(() => {
-      autoCheckForUpdates();
-    }, 15000);
-
-    // Auto-check immediately when tab gains focus (e.g. user switches back from Google Drive)
-    window.addEventListener('focus', () => {
-      autoCheckForUpdates();
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        autoCheckForUpdates();
+    // 1. Instant 0ms render from local cache
+    try {
+      const cached = localStorage.getItem('peter_portfolio_data');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.success && Array.isArray(parsed.items)) {
+          handleDataLoaded(parsed, false);
+        }
       }
-    });
+    } catch (e) {
+      console.warn('Cache read error:', e);
+    }
+
+    // 2. Fast background check (hits server cache in ~1s, does NOT block the page)
+    loadPortfolioData(false);
   });
 
   /**
    * Fetch portfolio data
+   * @param {boolean} forceRefresh - If true (e.g. user clicked sync button), requests Drive re-scan
    */
-  function loadPortfolioData(forceRefresh = true) {
+  function loadPortfolioData(forceRefresh = false) {
     const syncBtn = document.getElementById('syncBtn');
     if (syncBtn) syncBtn.classList.add('syncing');
 
@@ -1327,70 +1326,39 @@
         })
         .getPortfolioData(forceRefresh);
     } else {
-      // Remote fetch via Apps Script JSON API (for GitHub Pages & local preview)
+      // Abort previous in-flight request if any
+      if (activeAbortController) {
+        activeAbortController.abort();
+      }
+      activeAbortController = new AbortController();
+      const signal = activeAbortController.signal;
+
+      // 12s safety timeout so it never hangs indefinitely
+      const timeoutId = setTimeout(() => {
+        if (activeAbortController) {
+          activeAbortController.abort();
+          if (syncBtn) syncBtn.classList.remove('syncing');
+          if (portfolioData) {
+            showToast('Portfolio loaded from cache');
+          }
+        }
+      }, 12000);
+
       const apiUrl = 'https://script.google.com/macros/s/AKfycbypIpX-alQX3JfE0XMabmLF27nezSrlHmw_ekdh7Gso3cnKvJSAA9iVBXruFkkUJQ/exec?format=json' + (forceRefresh ? '&refresh=true' : '');
-      fetch(apiUrl)
+      fetch(apiUrl, { signal })
         .then(res => res.json())
         .then(data => {
+          clearTimeout(timeoutId);
           if (syncBtn) syncBtn.classList.remove('syncing');
           handleDataLoaded(data, forceRefresh);
         })
         .catch(err => {
+          clearTimeout(timeoutId);
           if (syncBtn) syncBtn.classList.remove('syncing');
-          handleDataError(err);
-        });
-    }
-  }
-
-  /**
-   * Background silent polling for newly added, renamed, or deleted assets
-   */
-  function autoCheckForUpdates() {
-    if (isPolling) return;
-    isPolling = true;
-
-    const onFreshData = (freshData) => {
-      isPolling = false;
-      if (freshData && freshData.success) {
-        if (!portfolioData) {
-          handleDataLoaded(freshData, false);
-          return;
-        }
-
-        const dataChanged = JSON.stringify(portfolioData.items) !== JSON.stringify(freshData.items) ||
-                            JSON.stringify(portfolioData.categories) !== JSON.stringify(freshData.categories) ||
-                            portfolioData.title !== freshData.title ||
-                            portfolioData.bio !== freshData.bio ||
-                            portfolioData.avatarUrl !== freshData.avatarUrl ||
-                            portfolioData.coverUrl !== freshData.coverUrl;
-
-        if (dataChanged) {
-          const oldCount = (portfolioData.items || []).length;
-          const newCount = (freshData.items || []).length;
-          portfolioData = freshData;
-          renderProfileHeader(freshData);
-          renderCategoryTabs(freshData.categories || ['All']);
-          renderPortfolio();
-
-          if (newCount > oldCount) {
-            showToast(`${newCount - oldCount} new work item(s) synced`);
-          } else {
-            showToast('Portfolio synced with Drive');
+          if (err.name !== 'AbortError') {
+            handleDataError(err);
           }
-        }
-      }
-    };
-
-    if (typeof google !== 'undefined' && google.script && google.script.run) {
-      google.script.run
-        .withSuccessHandler(onFreshData)
-        .withFailureHandler(() => { isPolling = false; })
-        .getPortfolioData(false);
-    } else {
-      fetch('https://script.google.com/macros/s/AKfycbypIpX-alQX3JfE0XMabmLF27nezSrlHmw_ekdh7Gso3cnKvJSAA9iVBXruFkkUJQ/exec?format=json')
-        .then(res => res.json())
-        .then(onFreshData)
-        .catch(() => { isPolling = false; });
+        });
     }
   }
 
@@ -1399,11 +1367,19 @@
    */
   function handleDataLoaded(data, wasManualRefresh) {
     if (!data || !data.success) {
-      renderErrorState(data ? data.message : 'Unable to load portfolio assets.');
+      if (!portfolioData) {
+        renderErrorState(data ? data.message : 'Unable to load portfolio assets.');
+      }
       return;
     }
 
     portfolioData = data;
+    try {
+      localStorage.setItem('peter_portfolio_data', JSON.stringify(data));
+    } catch (e) {
+      // ignore quota error
+    }
+
     renderProfileHeader(data);
     renderCategoryTabs(data.categories || ['All']);
     renderPortfolio();
@@ -1415,7 +1391,9 @@
 
   function handleDataError(error) {
     console.error('Error loading portfolio:', error);
-    renderErrorState('Unable to load portfolio assets. Please try again.');
+    if (!portfolioData) {
+      renderErrorState('Unable to load portfolio assets. Please try again.');
+    }
   }
 
   function isGenericTitle(str) {

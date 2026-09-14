@@ -11,30 +11,28 @@
 
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', () => {
-    // Always force fresh fetch on initial page load / browser refresh
-    loadPortfolioData(true);
-
-    // Auto-check for updates every 15 seconds
-    setInterval(() => {
-      autoCheckForUpdates();
-    }, 15000);
-
-    // Auto-check immediately when tab gains focus (e.g. user switches back from Google Drive)
-    window.addEventListener('focus', () => {
-      autoCheckForUpdates();
-    });
-
-    document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') {
-        autoCheckForUpdates();
+    // 1. Instant 0ms render from local cache
+    try {
+      const cached = localStorage.getItem('peter_portfolio_data');
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed && parsed.success && Array.isArray(parsed.items)) {
+          handleDataLoaded(parsed, false);
+        }
       }
-    });
+    } catch (e) {
+      console.warn('Cache read error:', e);
+    }
+
+    // 2. Fast background check (hits server cache in ~1s, does NOT block the page)
+    loadPortfolioData(false);
   });
 
   /**
    * Fetch portfolio data
+   * @param {boolean} forceRefresh - If true (e.g. user clicked sync button), requests Drive re-scan
    */
-  function loadPortfolioData(forceRefresh = true) {
+  function loadPortfolioData(forceRefresh = false) {
     const syncBtn = document.getElementById('syncBtn');
     if (syncBtn) syncBtn.classList.add('syncing');
 
@@ -51,7 +49,6 @@
         .getPortfolioData(forceRefresh);
     } else {
       if (syncBtn) syncBtn.classList.remove('syncing');
-      console.warn('Connect to Google Apps Script to load live Drive assets.');
     }
   }
 
