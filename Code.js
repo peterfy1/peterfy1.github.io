@@ -134,7 +134,10 @@ function getPortfolioData(forceRefresh) {
 
     const result = {
       success: true,
-      title: folderName,
+      author: 'Peter Fayez',
+      title: 'Peter Fayez',
+      folderName: folderName,
+      portfolioTitle: (folderName && !/^(portfolio|cv|my portfolio|drive|files|projects)$/i.test(folderName.trim())) ? folderName : 'Peter Fayez — Motion Graphics & Video Portfolio',
       description: folderDescription,
       bio: bioText,
       avatarUrl: avatarUrl,
@@ -243,9 +246,10 @@ function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
     // 1. Resolve Google Drive Shortcut if applicable
     if (mime === 'application/vnd.google-apps.shortcut') {
       try {
-        if (file.getTargetId) {
-          const targetId = file.getTargetId();
-          if (targetId) {
+        if (typeof Drive !== 'undefined' && Drive.Files && Drive.Files.get) {
+          const shortcutMeta = Drive.Files.get(fileId, { fields: 'shortcutDetails' });
+          if (shortcutMeta && shortcutMeta.shortcutDetails && shortcutMeta.shortcutDetails.targetId) {
+            const targetId = shortcutMeta.shortcutDetails.targetId;
             const targetFile = DriveApp.getFileById(targetId);
             fileId = targetId;
             mime = targetFile.getMimeType();

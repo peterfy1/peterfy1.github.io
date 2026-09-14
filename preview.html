@@ -1406,14 +1406,27 @@
     renderErrorState('Unable to load portfolio assets. Please try again.');
   }
 
+  function isGenericTitle(str) {
+    if (!str) return true;
+    const s = str.trim().toLowerCase();
+    return s === 'portfolio' || s === 'portofolio' || s === 'cv' || s === 'my portfolio' || s === 'drive' || s === 'files' || s === 'projects' || s === 'google drive';
+  }
+
   /**
    * Render Profile Header
    */
   function renderProfileHeader(data) {
-    // Title / Name
+    // Title / Name: Always ensure Peter Fayez is the author name unless a distinct personal name is provided
     const nameEl = document.getElementById('profileName');
+    let authorName = 'Peter Fayez';
+    if (data.author && !isGenericTitle(data.author)) {
+      authorName = data.author;
+    } else if (data.title && !isGenericTitle(data.title)) {
+      authorName = data.title;
+    }
+
     if (nameEl) {
-      nameEl.textContent = data.title || 'Peter Fayez';
+      nameEl.textContent = authorName;
     }
 
     // Headline / Bio
@@ -1434,7 +1447,7 @@
       if (data.avatarUrl) {
         avatarBox.innerHTML = `<img src="${data.avatarUrl}" class="avatar-img" alt="Avatar" />`;
       } else {
-        const initials = getInitials(data.title || 'PF');
+        const initials = getInitials(authorName);
         avatarBox.innerHTML = `<span class="avatar-monogram">${initials}</span>`;
       }
     }
@@ -1460,6 +1473,7 @@
    * Extract Initials from Name
    */
   function getInitials(name) {
+    if (!name || isGenericTitle(name)) return 'PF';
     const parts = name.trim().split(/\s+/);
     if (parts.length >= 2) {
       return (parts[0][0] + parts[1][0]).toUpperCase();
@@ -1658,6 +1672,10 @@
     }
 
     const delay = Math.min(index * 0.04, 0.32).toFixed(2);
+    const hasRealSize = item.sizeBytes && item.sizeBytes > 0 && item.sizeFormatted && item.sizeFormatted !== '0 B';
+    const sizeBadge = hasRealSize ? item.sizeFormatted : (item.type === 'video' ? 'HD Video' : '');
+    const sublineText = sizeBadge ? `${escapeHtml(item.category)} • ${sizeBadge}` : escapeHtml(item.category);
+
     return `
       <div class="card-item" onclick="openModal(${index})" style="animation-delay: ${delay}s;">
         <div class="card-poster">
@@ -1666,7 +1684,7 @@
         <div class="card-caption">
           <div class="caption-text">
             <div class="card-title" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
-            <div class="card-subline">${escapeHtml(item.category)} • ${item.sizeFormatted}</div>
+            <div class="card-subline">${sublineText}</div>
           </div>
           <div class="card-quick-actions" onclick="event.stopPropagation()">
             <a href="${item.downloadUrl}" target="_blank" class="btn-quick-icon" title="Download Asset">
@@ -1697,7 +1715,9 @@
     const modalDownloadBtn = document.getElementById('modalDownloadBtn');
 
     modalTitle.textContent = item.name;
-    modalMeta.textContent = `${item.category} • ${item.sizeFormatted} • ${new Date(item.lastUpdated).toLocaleDateString()}`;
+    const hasRealSize = item.sizeBytes && item.sizeBytes > 0 && item.sizeFormatted && item.sizeFormatted !== '0 B';
+    const sizeMeta = hasRealSize ? ` • ${item.sizeFormatted}` : (item.type === 'video' ? ' • Video Stream' : '');
+    modalMeta.textContent = `${item.category}${sizeMeta} • ${new Date(item.lastUpdated).toLocaleDateString()}`;
     
     modalDownloadBtn.href = item.downloadUrl;
 
