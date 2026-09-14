@@ -51,10 +51,11 @@
   /* ================= PROFILE COVER BANNER ================= */
   .profile-banner {
     width: 100%;
-    height: 190px;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 60%, #1e1b4b 100%);
+    height: 260px;
+    background-color: #ffffff;
+    background-image: url('assets/cover.png');
     background-size: cover;
-    background-position: center;
+    background-position: center 30%;
     position: relative;
   }
 
@@ -65,6 +66,10 @@
     background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
     background-size: 24px 24px;
     opacity: 0.8;
+  }
+
+  .profile-banner.has-cover::after {
+    display: none;
   }
 
   /* ================= FLOATING PROFILE CARD ================= */
@@ -111,12 +116,12 @@
 
   /* Squircle Avatar */
   .avatar-box {
-    width: 90px;
-    height: 90px;
-    border-radius: 24px;
+    width: 104px;
+    height: 104px;
+    border-radius: 26px;
     background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
     border: 4px solid var(--bg-surface);
-    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -128,6 +133,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center center;
+    display: block;
   }
 
   .avatar-monogram {

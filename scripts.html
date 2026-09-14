@@ -154,21 +154,20 @@
       headlineEl.textContent = data.bio || data.description || 'Motion Graphics Designer & Video Editor | Software Engineering Student';
     }
 
-    // Cover Image (if uploaded)
+    // Cover Image (if uploaded or default)
     const bannerEl = document.getElementById('profileBanner');
-    if (bannerEl && data.coverUrl) {
-      bannerEl.style.backgroundImage = `url('${data.coverUrl}')`;
+    if (bannerEl) {
+      const cover = data.coverUrl || 'assets/cover.png';
+      bannerEl.style.backgroundImage = `url('${cover}')`;
+      bannerEl.classList.add('has-cover');
     }
 
-    // Avatar (if avatar image exists or fallback initials monogram)
+    // Avatar (if avatar image exists or fallback to assets/avatar.png)
     const avatarBox = document.getElementById('avatarBox');
     if (avatarBox) {
-      if (data.avatarUrl) {
-        avatarBox.innerHTML = `<img src="${data.avatarUrl}" class="avatar-img" alt="Avatar" />`;
-      } else {
-        const initials = getInitials(authorName);
-        avatarBox.innerHTML = `<span class="avatar-monogram">${initials}</span>`;
-      }
+      const avatarSrc = data.avatarUrl || 'assets/avatar.png';
+      const initials = getInitials(authorName);
+      avatarBox.innerHTML = `<img src="${avatarSrc}" class="avatar-img" alt="${escapeHtml(authorName)}" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'avatar-monogram\\'>${initials}</span>';" />`;
     }
 
     // Total Projects

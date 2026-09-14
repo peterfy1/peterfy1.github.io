@@ -57,10 +57,11 @@
   /* ================= PROFILE COVER BANNER ================= */
   .profile-banner {
     width: 100%;
-    height: 190px;
-    background: linear-gradient(135deg, #1e293b 0%, #0f172a 60%, #1e1b4b 100%);
+    height: 260px;
+    background-color: #ffffff;
+    background-image: url('assets/cover.png');
     background-size: cover;
-    background-position: center;
+    background-position: center 30%;
     position: relative;
   }
 
@@ -71,6 +72,10 @@
     background-image: radial-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px);
     background-size: 24px 24px;
     opacity: 0.8;
+  }
+
+  .profile-banner.has-cover::after {
+    display: none;
   }
 
   /* ================= FLOATING PROFILE CARD ================= */
@@ -117,12 +122,12 @@
 
   /* Squircle Avatar */
   .avatar-box {
-    width: 90px;
-    height: 90px;
-    border-radius: 24px;
+    width: 104px;
+    height: 104px;
+    border-radius: 26px;
     background: linear-gradient(135deg, #0f172a 0%, #334155 100%);
     border: 4px solid var(--bg-surface);
-    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.15);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.18);
     overflow: hidden;
     display: flex;
     align-items: center;
@@ -134,6 +139,8 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center center;
+    display: block;
   }
 
   .avatar-monogram {
@@ -1041,7 +1048,7 @@
 <body>
   
   <!-- Profile Cover Banner -->
-  <div id="profileBanner" class="profile-banner"></div>
+  <div id="profileBanner" class="profile-banner has-cover" style="background-image: url('assets/cover.png');"></div>
 
   <!-- Floating Profile Card -->
   <div class="profile-wrapper">
@@ -1050,7 +1057,7 @@
         
         <!-- Squircle Avatar -->
         <div id="avatarBox" class="avatar-box">
-          <span id="avatarMonogram" class="avatar-monogram">PF</span>
+          <img src="assets/avatar.png" class="avatar-img" alt="Peter Fayez" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\'avatar-monogram\'>PF</span>';" />
         </div>
 
         <!-- Details -->
@@ -1435,21 +1442,20 @@
       headlineEl.textContent = data.bio || data.description || 'Motion Graphics Designer & Video Editor | Software Engineering Student';
     }
 
-    // Cover Image (if uploaded)
+    // Cover Image (if uploaded or default)
     const bannerEl = document.getElementById('profileBanner');
-    if (bannerEl && data.coverUrl) {
-      bannerEl.style.backgroundImage = `url('${data.coverUrl}')`;
+    if (bannerEl) {
+      const cover = data.coverUrl || 'assets/cover.png';
+      bannerEl.style.backgroundImage = `url('${cover}')`;
+      bannerEl.classList.add('has-cover');
     }
 
-    // Avatar (if avatar image exists or fallback initials monogram)
+    // Avatar (if avatar image exists or fallback to assets/avatar.png)
     const avatarBox = document.getElementById('avatarBox');
     if (avatarBox) {
-      if (data.avatarUrl) {
-        avatarBox.innerHTML = `<img src="${data.avatarUrl}" class="avatar-img" alt="Avatar" />`;
-      } else {
-        const initials = getInitials(authorName);
-        avatarBox.innerHTML = `<span class="avatar-monogram">${initials}</span>`;
-      }
+      const avatarSrc = data.avatarUrl || 'assets/avatar.png';
+      const initials = getInitials(authorName);
+      avatarBox.innerHTML = `<img src="${avatarSrc}" class="avatar-img" alt="${escapeHtml(authorName)}" onerror="this.onerror=null; this.parentElement.innerHTML='<span class=\\'avatar-monogram\\'>${initials}</span>';" />`;
     }
 
     // Total Projects
