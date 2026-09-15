@@ -334,7 +334,7 @@ function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks, sub
 
     // Direct Google CDN for public assets
     const cdnUrl = 'https://lh3.googleusercontent.com/d/' + fileId;
-    const thumbnailUrl = posterUrl || ('https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1200');
+    const thumbnailUrl = posterUrl || ('https://drive.google.com/thumbnail?id=' + fileId + '&sz=w1000');
     const previewUrl = 'https://drive.google.com/file/d/' + fileId + '/preview';
     const viewUrl = file.getUrl();
     const downloadUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;

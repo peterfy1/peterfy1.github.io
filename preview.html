@@ -1934,6 +1934,29 @@
   }
 
   /**
+   * Multi-tier auto thumbnail fallback for videos and images
+   */
+  window.handleVideoThumbError = function(imgEl, fileId) {
+    if (!imgEl) return;
+    const step = parseInt(imgEl.getAttribute('data-step') || '0', 10);
+    if (step === 0) {
+      imgEl.setAttribute('data-step', '1');
+      imgEl.src = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w800';
+    } else if (step === 1) {
+      imgEl.setAttribute('data-step', '2');
+      imgEl.src = 'https://drive.google.com/thumbnail?id=' + fileId + '&sz=w600';
+    } else if (step === 2) {
+      imgEl.setAttribute('data-step', '3');
+      imgEl.src = 'https://drive.google.com/thumbnail?id=' + fileId;
+    } else if (step === 3) {
+      imgEl.setAttribute('data-step', '4');
+      imgEl.src = 'https://lh3.googleusercontent.com/d/' + fileId + '=w800';
+    } else {
+      imgEl.style.display = 'none';
+    }
+  };
+
+  /**
    * Generates Card HTML
    */
   function renderCardHtml(item, index) {
@@ -1945,7 +1968,7 @@
           src="${item.thumbnailUrl}" 
           alt="${escapeHtml(item.name)}" 
           loading="lazy"
-          onerror="this.onerror=null; this.src='${item.cdnUrl}'"
+          onerror="this.onerror=null; this.src='https://drive.google.com/thumbnail?id=${escapeHtml(item.id)}&sz=w800'; this.onerror=() => { this.src='${item.cdnUrl}'; };"
         />
       `;
     } else if (item.type === 'video') {
@@ -1964,7 +1987,7 @@
           src="${posterImg}" 
           alt="${escapeHtml(item.name)}" 
           loading="lazy" 
-          onerror="this.onerror=null; this.src='${item.cdnUrl}'; this.onerror=() => { this.style.opacity='0'; };"
+          onerror="handleVideoThumbError(this, '${escapeHtml(item.id)}')"
         />
         <div class="play-glass">
           <div class="play-circle">
