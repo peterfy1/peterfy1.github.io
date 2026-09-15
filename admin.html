@@ -928,6 +928,8 @@
       updateOAuthConfigLabel();
     });
 
+    const DEFAULT_GOOGLE_CLIENT_ID = '384251465276-lu14sul99cfm36p94a3bbg5aq9jp5fm4.apps.googleusercontent.com';
+
     function isAuthorized(email) {
       if (!email) return false;
       const lower = email.trim().toLowerCase();
@@ -935,14 +937,14 @@
     }
 
     function getGoogleClientId() {
-      return localStorage.getItem('peter_google_client_id') || '';
+      return localStorage.getItem('peter_google_client_id') || DEFAULT_GOOGLE_CLIENT_ID;
     }
 
     function updateOAuthConfigLabel() {
       const clientId = getGoogleClientId();
       const label = document.getElementById('oauthConfigBtnLabel');
       if (label) {
-        label.textContent = clientId ? 'Google Client ID: Connected' : 'Connect Google Client ID';
+        label.textContent = clientId ? 'Google Client ID: Active' : 'Connect Google Client ID';
       }
     }
 
