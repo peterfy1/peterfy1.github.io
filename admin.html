@@ -741,7 +741,7 @@
           <img id="userAvatarImg" src="assets/avatar.png" class="user-avatar" alt="Admin Avatar">
           <div class="user-info-text">
             <span id="userNameText" class="user-name">Peter Fayez</span>
-            <span id="userEmailText" class="user-email">peterfayez074@gmail.com</span>
+            <span id="userEmailText" class="user-email">peterfayez107@gmail.com</span>
           </div>
           <button class="btn-signout" onclick="signOutAdmin()">Sign Out</button>
         </div>
@@ -848,13 +848,8 @@
   </div>
 
   <script>
-    // Authorized Administrator Accounts
-    const AUTHORIZED_ADMINS = [
-      'peterfayez074@gmail.com',
-      'ainshamesundayschool@gmail.com',
-      'peterfayez@gmail.com',
-      'admin@peterfayez.com'
-    ];
+    // Authorized Administrator Account - Strictly only peterfayez107@gmail.com
+    const AUTHORIZED_ADMIN = 'peterfayez107@gmail.com';
 
     const API_ENDPOINT = 'https://script.google.com/macros/s/AKfycbypIpX-alQX3JfE0XMabmLF27nezSrlHmw_ekdh7Gso3cnKvJSAA9iVBXruFkkUJQ/exec';
 
@@ -882,7 +877,7 @@
     function isAuthorized(email) {
       if (!email) return false;
       const lower = email.trim().toLowerCase();
-      return AUTHORIZED_ADMINS.some(admin => lower === admin.toLowerCase()) || lower.includes('peterfayez');
+      return lower === AUTHORIZED_ADMIN || lower === 'peterfayez107@gamil.com';
     }
 
     function initGoogleIdentity() {
