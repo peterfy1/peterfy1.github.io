@@ -229,8 +229,127 @@
 
     .google-signin-btn-wrap {
       display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0 10px;
+    }
+
+    .google-sign-in-btn {
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
-      margin-bottom: 20px;
+      gap: 14px;
+      width: 100%;
+      max-width: 320px;
+      height: 52px;
+      background: #ffffff;
+      color: #1f1f1f;
+      border: 1px solid #dadce0;
+      border-radius: 26px;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .google-sign-in-btn:hover {
+      background: #f8faff;
+      border-color: #4285f4;
+      box-shadow: 0 6px 20px rgba(66, 133, 244, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .google-sign-in-btn:active {
+      transform: translateY(0);
+    }
+
+    .btn-configure-oauth {
+      background: none;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 6px;
+      transition: color 0.2s, background 0.2s;
+    }
+
+    .btn-configure-oauth:hover {
+      color: var(--text-primary);
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    /* Modal Scrim and Card */
+    .modal-scrim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      animation: fadeIn 0.25s ease;
+    }
+
+    .modal-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-bright);
+      border-radius: var(--radius-md);
+      max-width: 520px;
+      width: 100%;
+      padding: 28px;
+      box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+      text-align: left;
+    }
+
+    .modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+    }
+
+    .modal-header h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text-primary);
+    }
+
+    .btn-modal-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+      padding: 4px;
+      line-height: 1;
+    }
+
+    .btn-modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .oauth-steps-box {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+    }
+
+    .oauth-step-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
     }
 
     .auth-error-box {
@@ -598,29 +717,64 @@
       </div>
       <h1 class="auth-gate-title">Portfolio Manager</h1>
       <p class="auth-gate-desc">Sign in with your authorized Google account to manage your projects, subfolder aesthetics, and Drive sync settings.</p>
-      
-      <!-- Google Official One-Tap / Sign-In Button -->
-      <div id="g_id_onload"
-           data-client_id="1082531637775-mockclient.apps.googleusercontent.com"
-           data-callback="handleGoogleSignIn"
-           data-auto_prompt="false">
-      </div>
-      
+           <!-- Official Google Sign-In Button -->
       <div class="google-signin-btn-wrap">
-        <div id="googleSignInBtn"></div>
-      </div>
+        <button id="officialGoogleBtn" class="google-sign-in-btn" onclick="triggerGoogleSignIn()">
+          <svg width="22" height="22" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.27 21.36 7.33 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.99 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.27 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span id="googleBtnText">Sign in with Google</span>
+        </button>
 
-      <div style="margin-top: 14px; font-size: 0.8rem; color: var(--text-dim);">
-        Quick Admin Access: You can also unlock with your administrator email.
-      </div>
-
-      <div style="display: flex; gap: 8px; margin-top: 12px;">
-        <input type="email" id="quickEmailInput" class="form-input" placeholder="admin@email.com" value="peterfayez074@gmail.com" />
-        <button class="btn-action btn-secondary" onclick="authenticateWithEmail()">Enter</button>
+        <button class="btn-configure-oauth" onclick="openOAuthSetupModal()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span id="oauthConfigBtnLabel">Google OAuth Client Settings</span>
+        </button>
       </div>
 
       <div id="authErrorBox" class="auth-error-box">
         Access Denied. That account does not have administrator privileges.
+      </div>
+    </div>
+
+    <!-- OAuth Setup Modal -->
+    <div id="oauthModal" class="modal-scrim" style="display: none;" onclick="if(event.target === this) closeOAuthModal()">
+      <div class="modal-card">
+        <div class="modal-header">
+          <h3>Google Cloud OAuth Client</h3>
+          <button class="btn-modal-close" onclick="closeOAuthModal()">✕</button>
+        </div>
+        <div class="modal-body">
+          <p style="font-size: 0.88rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 14px;">
+            To connect official Google Sign-In, enter your Google Cloud OAuth 2.0 Web Client ID.
+          </p>
+
+          <div class="oauth-steps-box">
+            <div class="oauth-step-title">How to get your Client ID:</div>
+            <ol style="padding-left: 18px; font-size: 0.82rem; color: var(--text-dim); line-height: 1.6;">
+              <li>Open <a href="https://console.cloud.google.com/apis/credentials" target="_blank" style="color: var(--accent-blue); text-decoration: underline; font-weight: 600;">Google Cloud Console → Credentials ↗</a></li>
+              <li>Click <strong>Create Credentials</strong> → <strong>OAuth client ID</strong> (Type: <em>Web application</em>)</li>
+              <li>Add to <strong>Authorized JavaScript origins</strong>:
+                <code style="display: block; background: rgba(0,0,0,0.4); padding: 5px 8px; border-radius: 4px; margin: 4px 0; color: #38bdf8; font-size: 0.8rem; user-select: all;">https://peterfy1.github.io</code>
+              </li>
+              <li>Paste your <strong>Client ID</strong> below:</li>
+            </ol>
+          </div>
+
+          <label style="font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); display: block; margin-top: 14px; margin-bottom: 6px;">Google OAuth 2.0 Client ID</label>
+          <input type="text" id="oauthClientIdInput" class="form-input" placeholder="e.g. 123456789-abcdef.apps.googleusercontent.com" style="width: 100%;" />
+
+          <div style="display: flex; gap: 10px; margin-top: 18px; justify-content: flex-end;">
+            <button class="btn-action btn-secondary" onclick="closeOAuthModal()">Cancel</button>
+            <button class="btn-action btn-primary" onclick="saveOAuthClientIdAndSignIn()">Save & Connect</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -770,9 +924,8 @@
           }
         } catch (e) {}
       }
-
-      // Initialize Google One-Tap / Identity Services Button
-      initGoogleAuth();
+      // Update config label if client ID exists
+      updateOAuthConfigLabel();
     });
 
     function isAuthorized(email) {
@@ -781,56 +934,111 @@
       return AUTHORIZED_ADMINS.some(admin => lower === admin.toLowerCase()) || lower.includes('peterfayez');
     }
 
-    function initGoogleAuth() {
-      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
-        google.accounts.id.initialize({
-          client_id: '1082531637775-mockclient.apps.googleusercontent.com',
-          callback: handleGoogleSignIn
-        });
+    function getGoogleClientId() {
+      return localStorage.getItem('peter_google_client_id') || '';
+    }
 
-        google.accounts.id.renderButton(
-          document.getElementById('googleSignInBtn'),
-          { theme: 'outline', size: 'large', shape: 'pill', text: 'signin_with' }
-        );
+    function updateOAuthConfigLabel() {
+      const clientId = getGoogleClientId();
+      const label = document.getElementById('oauthConfigBtnLabel');
+      if (label) {
+        label.textContent = clientId ? 'Google Client ID: Connected' : 'Connect Google Client ID';
       }
     }
 
-    function handleGoogleSignIn(response) {
+    /**
+     * Triggers authentic Google Sign-In popup
+     */
+    function triggerGoogleSignIn() {
+      const clientId = getGoogleClientId();
+      if (!clientId) {
+        openOAuthSetupModal();
+        return;
+      }
+
+      const btnText = document.getElementById('googleBtnText');
+      if (btnText) btnText.textContent = 'Connecting to Google...';
+
+      // Use Google Identity Services OAuth 2.0 Token Client
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2) {
+        try {
+          const client = google.accounts.oauth2.initTokenClient({
+            client_id: clientId,
+            scope: 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid',
+            callback: async (tokenResponse) => {
+              if (btnText) btnText.textContent = 'Sign in with Google';
+              if (tokenResponse && tokenResponse.access_token) {
+                await fetchGoogleUserProfile(tokenResponse.access_token);
+              } else if (tokenResponse && tokenResponse.error) {
+                showAuthError(`Google Sign-In Error: ${tokenResponse.error_description || tokenResponse.error}`);
+              }
+            },
+            error_callback: (err) => {
+              if (btnText) btnText.textContent = 'Sign in with Google';
+              showAuthError(`Google Error: ${err.message || 'Popup was blocked or closed.'}`);
+            }
+          });
+          client.requestAccessToken({ prompt: 'select_account' });
+        } catch (e) {
+          if (btnText) btnText.textContent = 'Sign in with Google';
+          showAuthError(`Google Auth Init Error: ${e.message}. Please check your Client ID.`);
+        }
+      } else {
+        if (btnText) btnText.textContent = 'Sign in with Google';
+        showAuthError('Google Sign-In SDK is loading. Please check your internet connection and try again.');
+      }
+    }
+
+    /**
+     * Fetches verified user info directly from Google API
+     */
+    async function fetchGoogleUserProfile(accessToken) {
       try {
-        // Decode JWT token payload
-        const base64Url = response.credential.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = JSON.parse(decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join('')));
-        
-        if (isAuthorized(payload.email)) {
+        const res = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+          headers: { Authorization: `Bearer ${accessToken}` }
+        });
+        if (!res.ok) throw new Error('Could not verify token with Google');
+        const profile = await res.json();
+
+        if (isAuthorized(profile.email)) {
           const user = {
-            email: payload.email,
-            name: payload.name || 'Peter Fayez',
-            avatar: payload.picture || 'assets/avatar.png'
+            email: profile.email,
+            name: profile.name || 'Peter Fayez',
+            avatar: profile.picture || 'assets/avatar.png'
           };
           localStorage.setItem('peter_portfolio_admin_user', JSON.stringify(user));
           unlockDashboard(user);
         } else {
-          showAuthError(`Access Denied: ${payload.email} is not in the list of authorized administrators.`);
+          showAuthError(`Access Denied: Google account ${profile.email} is not authorized as an administrator.`);
         }
       } catch (err) {
-        showAuthError('Error decoding Google credentials. Try entering email directly.');
+        showAuthError(`Error fetching Google user profile: ${err.message}`);
       }
     }
 
-    function authenticateWithEmail() {
-      const email = document.getElementById('quickEmailInput').value.trim();
-      if (isAuthorized(email)) {
-        const user = {
-          email: email,
-          name: 'Peter Fayez',
-          avatar: 'assets/avatar.png'
-        };
-        localStorage.setItem('peter_portfolio_admin_user', JSON.stringify(user));
-        unlockDashboard(user);
-      } else {
-        showAuthError(`Access Denied: ${email} is not an authorized administrator.`);
+    function openOAuthSetupModal() {
+      const input = document.getElementById('oauthClientIdInput');
+      if (input) {
+        input.value = getGoogleClientId();
       }
+      document.getElementById('oauthModal').style.display = 'flex';
+    }
+
+    function closeOAuthModal() {
+      document.getElementById('oauthModal').style.display = 'none';
+    }
+
+    function saveOAuthClientIdAndSignIn() {
+      const input = document.getElementById('oauthClientIdInput');
+      const val = (input ? input.value : '').trim();
+      if (!val) {
+        alert('Please enter your Google OAuth Client ID.');
+        return;
+      }
+      localStorage.setItem('peter_google_client_id', val);
+      updateOAuthConfigLabel();
+      closeOAuthModal();
+      triggerGoogleSignIn();
     }
 
     function showAuthError(msg) {
