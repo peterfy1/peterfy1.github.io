@@ -93,9 +93,10 @@ function getPortfolioData(forceRefresh) {
     let avatarUrl = '';
     let coverUrl = '';
     const assets = [];
+    const foldersList = [];
     const categoriesSet = new Set(['All']);
 
-    // 1. Check root files
+    // 1. Check root files (General category)
     scanFolderFiles(rootFolder, 'General', assets, categoriesSet, {
       onAboutFound: function(aboutContent) {
         if (aboutContent && !bioText) bioText = aboutContent;
@@ -106,15 +107,54 @@ function getPortfolioData(forceRefresh) {
       onCoverFound: function(url) {
         if (!coverUrl) coverUrl = url;
       }
-    });
+    }, null);
 
-    // 2. Check subfolders (each subfolder acts as a project/category)
+    // 2. Check subfolders (each direct subfolder acts as a category)
     const subfolders = rootFolder.getFolders();
     while (subfolders.hasNext()) {
       const sub = subfolders.next();
       const subName = sub.getName();
       categoriesSet.add(subName);
-      scanFolderFiles(sub, subName, assets, categoriesSet, null);
+
+      // A. Scan files directly inside this category
+      scanFolderFiles(sub, subName, assets, categoriesSet, null, null);
+
+      // B. Scan nested child folders inside this category
+      const childFolders = sub.getFolders();
+      while (childFolders.hasNext()) {
+        const child = childFolders.next();
+        const childId = child.getId();
+        const childName = child.getName();
+        const childAssets = [];
+        let folderLogoUrl = '';
+        let folderColor = getFolderColor(childName);
+
+        scanFolderFiles(child, subName, childAssets, categoriesSet, {
+          onLogoFound: function(url) {
+            folderLogoUrl = url;
+          },
+          onColorFound: function(colorHex) {
+            folderColor = colorHex;
+          }
+        }, { id: childId, name: childName });
+
+        // Append child assets to global list
+        for (let j = 0; j < childAssets.length; j++) {
+          assets.push(childAssets[j]);
+        }
+
+        // Record folder entity with shape, color, and logo
+        foldersList.push({
+          id: childId,
+          name: childName,
+          category: subName,
+          type: 'folder',
+          itemCount: childAssets.length,
+          logoUrl: folderLogoUrl,
+          color: folderColor,
+          itemsCountText: childAssets.length === 1 ? '1 item' : childAssets.length + ' items'
+        });
+      }
     }
 
     // Sort items by last updated or created (newest first)
@@ -146,6 +186,7 @@ function getPortfolioData(forceRefresh) {
       folderUrl: rootFolder.getUrl(),
       lastSync: new Date().toISOString(),
       categories: Array.from(categoriesSet),
+      folders: foldersList,
       stats: stats,
       items: assets,
       fromCache: false
@@ -178,9 +219,9 @@ function getPortfolioData(forceRefresh) {
 
 /**
  * Scans files within a specific folder and appends them to the assets list.
- * Supports Google Drive Shortcuts, companion poster images for videos, and metadata.
+ * Supports Google Drive Shortcuts, companion poster images for videos, logos, colors, and metadata.
  */
-function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
+function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks, subfolderInfo) {
   const filesIter = folder.getFiles();
   const fileList = [];
   const imageMap = {}; // Maps baseName -> fileId for custom video covers
@@ -234,6 +275,25 @@ function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
       continue;
     }
 
+    // Check if file is a subfolder logo or icon (e.g. logo.png, icon.png, folder.png)
+    if (hooks && hooks.onLogoFound && (lowerName.startsWith('logo.') || lowerName.startsWith('icon.') || lowerName === 'folder.png' || lowerName === 'folder.jpg')) {
+      hooks.onLogoFound('https://lh3.googleusercontent.com/d/' + file.getId());
+      continue;
+    }
+
+    // Check if file is a folder color definition (e.g. color.txt with hex like #0a84ff)
+    if (hooks && hooks.onColorFound && (lowerName === 'color.txt' || lowerName === '.color')) {
+      try {
+        const colorText = file.getBlob().getDataAsString().trim();
+        if (/^#[0-9a-fA-F]{3,8}$/.test(colorText)) {
+          hooks.onColorFound(colorText);
+        }
+      } catch (e) {
+        // Ignore read error
+      }
+      continue;
+    }
+
     // Skip hidden files or system files
     if (name.startsWith('.')) {
       continue;
@@ -284,6 +344,8 @@ function scanFolderFiles(folder, categoryName, assets, categoriesSet, hooks) {
       name: cleanFileName(name),
       rawName: name,
       category: categoryName,
+      subfolderId: subfolderInfo ? subfolderInfo.id : null,
+      subfolderName: subfolderInfo ? subfolderInfo.name : null,
       type: type,
       mimeType: mime,
       sizeFormatted: formatBytes(size),
@@ -343,4 +405,77 @@ function formatBytes(bytes, decimals = 1) {
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+/**
+ * Generate a consistent, aesthetic designer color for a folder based on its name
+ */
+function getFolderColor(name) {
+  const PALETTES = [
+    '#0a84ff', // macOS Blue
+    '#af52de', // Royal Purple
+    '#30d158', // Mint Emerald
+    '#ff9f0a', // Bright Amber
+    '#ff453a', // Sunset Coral
+    '#64d2ff', // Sky Cyan
+    '#6366f1', // Indigo Slate
+    '#ec4899', // Pink Fuchsia
+    '#14b8a6'  // Teal
+  ];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash = name.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const index = Math.abs(hash) % PALETTES.length;
+  return PALETTES[index];
+}
+
+/**
+ * Handles admin POST requests (flush cache, update settings, upload file metadata)
+ */
+function doPost(e) {
+  try {
+    let payload = {};
+    if (e && e.postData && e.postData.contents) {
+      payload = JSON.parse(e.postData.contents);
+    }
+    const action = payload.action;
+
+    // 1. Flush Cache
+    if (action === 'flushCache') {
+      const cache = CacheService.getScriptCache();
+      cache.remove('portfolio_data_' + PORTFOLIO_FOLDER_ID);
+      cache.remove('portfolio_time_' + PORTFOLIO_FOLDER_ID);
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Server cache flushed successfully. Changes will now reflect immediately.'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    // 2. Save metadata (bio, description, title)
+    if (action === 'saveMetadata') {
+      const rootFolder = DriveApp.getFolderById(PORTFOLIO_FOLDER_ID);
+      if (payload.description) {
+        rootFolder.setDescription(payload.description);
+      }
+      const cache = CacheService.getScriptCache();
+      cache.remove('portfolio_data_' + PORTFOLIO_FOLDER_ID);
+      cache.remove('portfolio_time_' + PORTFOLIO_FOLDER_ID);
+      return ContentService.createTextOutput(JSON.stringify({
+        success: true,
+        message: 'Portfolio details updated successfully.'
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      message: 'Unknown action: ' + action
+    })).setMimeType(ContentService.MimeType.JSON);
+
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      success: false,
+      error: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
 }

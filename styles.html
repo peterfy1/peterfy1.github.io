@@ -517,6 +517,199 @@
     transform: scale(0.96);
   }
 
+  /* ================= SUBFOLDERS & MACOS FINDER FOLDERS ================= */
+  .subfolders-section {
+    margin-bottom: 36px;
+  }
+
+  .subfolders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .subfolders-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .subfolders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .folder-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 22px 20px;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    animation: cardPopIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .folder-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px var(--folder-glow, rgba(15, 23, 42, 0.12));
+    border-color: var(--folder-color, var(--accent-blue));
+  }
+
+  /* Finder Folder Silhouette */
+  .finder-icon-box {
+    position: relative;
+    width: 120px;
+    height: 94px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .finder-folder-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.1));
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .folder-card:hover .finder-folder-svg {
+    transform: scale(1.05);
+  }
+
+  .folder-logo-badge {
+    position: absolute;
+    top: 54%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .folder-card:hover .folder-logo-badge {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .folder-logo-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .folder-badge-glyph {
+    color: var(--folder-color, #0a84ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .folder-card-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .folder-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .folder-pill-count {
+    background: var(--folder-soft-bg, #eff6ff);
+    color: var(--folder-color, #0a84ff);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* Breadcrumb Navigation */
+  .breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .btn-breadcrumb-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-breadcrumb-back:hover {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+  }
+
+  .breadcrumb-trail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .breadcrumb-sep {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb-active {
+    color: var(--accent-blue);
+  }
+
   /* ================= PROJECTS GRID & CARDS ================= */
   .projects-canvas {
     display: grid;

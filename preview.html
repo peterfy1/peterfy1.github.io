@@ -527,6 +527,199 @@
     transform: scale(0.96);
   }
 
+  /* ================= SUBFOLDERS & MACOS FINDER FOLDERS ================= */
+  .subfolders-section {
+    margin-bottom: 36px;
+  }
+
+  .subfolders-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .subfolders-title {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .subfolders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+  }
+
+  .folder-card {
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 22px 20px;
+    cursor: pointer;
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+    animation: cardPopIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+
+  .folder-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 36px var(--folder-glow, rgba(15, 23, 42, 0.12));
+    border-color: var(--folder-color, var(--accent-blue));
+  }
+
+  /* Finder Folder Silhouette */
+  .finder-icon-box {
+    position: relative;
+    width: 120px;
+    height: 94px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .finder-folder-svg {
+    width: 100%;
+    height: 100%;
+    filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.1));
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .folder-card:hover .finder-folder-svg {
+    transform: scale(1.05);
+  }
+
+  .folder-logo-badge {
+    position: absolute;
+    top: 54%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    padding: 5px;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .folder-card:hover .folder-logo-badge {
+    transform: translate(-50%, -50%) scale(1.1);
+  }
+
+  .folder-logo-badge img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  .folder-badge-glyph {
+    color: var(--folder-color, #0a84ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .folder-card-name {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 6px;
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .folder-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+
+  .folder-pill-count {
+    background: var(--folder-soft-bg, #eff6ff);
+    color: var(--folder-color, #0a84ff);
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.02em;
+  }
+
+  /* Breadcrumb Navigation */
+  .breadcrumb-nav {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 28px;
+    padding: 12px 18px;
+    background: #ffffff;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+    animation: fadeIn 0.3s ease;
+  }
+
+  .btn-breadcrumb-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    background: var(--bg-subtle);
+    border: 1px solid var(--border-color);
+    padding: 6px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+
+  .btn-breadcrumb-back:hover {
+    background: #0f172a;
+    color: #ffffff;
+    border-color: #0f172a;
+  }
+
+  .breadcrumb-trail {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.92rem;
+    font-weight: 600;
+  }
+
+  .breadcrumb-sep {
+    color: var(--text-muted);
+  }
+
+  .breadcrumb-active {
+    color: var(--accent-blue);
+  }
+
   /* ================= PROJECTS GRID & CARDS ================= */
   .projects-canvas {
     display: grid;
@@ -1130,6 +1323,14 @@
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
           </svg>
         </button>
+
+        <a href="admin.html" class="btn-action btn-action-outline" style="padding: 7px 13px; gap: 6px; font-weight: 600;" title="Portfolio Admin Management">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"></circle>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+          </svg>
+          <span>Admin</span>
+        </a>
       </div>
     </div>
   </div>
@@ -1210,6 +1411,9 @@
       </button>
     </div>
 
+    <!-- Subfolder Navigation & Breadcrumbs -->
+    <div id="subfolderViewContainer"></div>
+
     <!-- Projects Grid -->
     <div id="projectsCanvas" class="projects-canvas">
       <div class="skeleton-block"></div>
@@ -1286,6 +1490,118 @@
   let filteredItems = [];
   let isPolling = false;
   let activeAbortController = null;
+  let activeSubfolderId = null;
+  let activeSubfolderName = null;
+
+  /**
+   * Returns folders from portfolio data or sample demonstration folders
+   */
+  function getAvailableFolders() {
+    if (portfolioData && Array.isArray(portfolioData.folders) && portfolioData.folders.length > 0) {
+      return portfolioData.folders;
+    }
+    // High-fidelity demonstration folders if no Drive subfolders have been indexed yet
+    return [
+      {
+        id: 'folder-nike-commercial',
+        name: 'Nike 3D Kinetic Reel',
+        category: 'Ai',
+        type: 'folder',
+        itemCount: 4,
+        itemsCountText: '4 projects',
+        color: '#ff5e3a',
+        logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg'
+      },
+      {
+        id: 'folder-apple-commercial',
+        name: 'Apple Vision Pro Campaign',
+        category: 'Ai',
+        type: 'folder',
+        itemCount: 3,
+        itemsCountText: '3 projects',
+        color: '#0a84ff',
+        logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'
+      },
+      {
+        id: 'folder-brand-studio',
+        name: 'Motion Ident & Title Sequences',
+        category: 'Ai',
+        type: 'folder',
+        itemCount: 5,
+        itemsCountText: '5 projects',
+        color: '#8b5cf6',
+        logoUrl: ''
+      }
+    ];
+  }
+
+  function enterSubfolder(folderId, folderName, category) {
+    activeSubfolderId = folderId;
+    activeSubfolderName = folderName;
+    if (category && activeCategory !== category) {
+      activeCategory = category;
+      renderCategoryTabs(portfolioData ? portfolioData.categories || ['All'] : ['All']);
+    }
+    renderPortfolio();
+    const container = document.getElementById('subfolderViewContainer');
+    if (container) {
+      container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }
+
+  function exitSubfolder() {
+    activeSubfolderId = null;
+    activeSubfolderName = null;
+    renderPortfolio();
+  }
+
+  function hexToRgba(hex, alpha) {
+    if (!hex || typeof hex !== 'string') return `rgba(10, 132, 255, ${alpha})`;
+    let c = hex.replace('#', '');
+    if (c.length === 3) c = c.split('').map(x => x + x).join('');
+    const num = parseInt(c, 16);
+    if (isNaN(num)) return `rgba(10, 132, 255, ${alpha})`;
+    const r = (num >> 16) & 255;
+    const g = (num >> 8) & 255;
+    const b = num & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  }
+
+  function renderFinderFolderCard(f) {
+    const color = f.color || '#0a84ff';
+    const glowColor = hexToRgba(color, 0.22);
+    const softBg = hexToRgba(color, 0.08);
+
+    const logoHtml = f.logoUrl 
+      ? `<div class="folder-logo-badge"><img src="${escapeHtml(f.logoUrl)}" alt="${escapeHtml(f.name)}" /></div>`
+      : `<div class="folder-logo-badge folder-badge-glyph">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor">
+            <path d="M10 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"/>
+          </svg>
+        </div>`;
+
+    const svgIcon = `
+      <svg viewBox="0 0 100 80" class="finder-folder-svg" fill="none">
+        <path d="M6 14C6 9.58 9.58 6 14 6H38C41 6 43.5 8 45.5 11L48 15H86C90.42 15 94 18.58 94 23V64C94 68.42 90.42 72 86 72H14C9.58 72 6 68.42 6 64V14Z" fill="${color}" fill-opacity="0.82" />
+        <path d="M6 24C6 19.58 9.58 16 14 16H86C90.42 16 94 19.58 94 24V66C94 70.42 90.42 74 86 74H14C9.58 74 6 70.42 6 66V24Z" fill="${color}" />
+        <path d="M14 17H86C89.5 17 92.5 19.5 93 23H7C7.5 19.5 10.5 17 14 17Z" fill="white" fill-opacity="0.32" />
+      </svg>
+    `;
+
+    return `
+      <div class="folder-card" style="--folder-color: ${color}; --folder-glow: ${glowColor}; --folder-soft-bg: ${softBg};" onclick="enterSubfolder('${escapeHtml(f.id)}', '${escapeHtml(f.name)}', '${escapeHtml(f.category || '')}')">
+        <div class="finder-icon-box">
+          ${svgIcon}
+          ${logoHtml}
+        </div>
+        <div class="folder-card-name" title="${escapeHtml(f.name)}">${escapeHtml(f.name)}</div>
+        <div class="folder-card-meta">
+          <span class="folder-pill-count">${escapeHtml(f.itemsCountText || (f.itemCount ? f.itemCount + ' items' : 'Folder'))}</span>
+          ${f.category && activeCategory === 'All' ? `<span>${escapeHtml(f.category)}</span>` : ''}
+        </div>
+      </div>
+    `;
+  }
 
   // Initialize on page load
   document.addEventListener('DOMContentLoaded', () => {
@@ -1495,6 +1811,8 @@
 
       btn.onclick = () => {
         activeCategory = cat;
+        activeSubfolderId = null;
+        activeSubfolderName = null;
         renderCategoryTabs(categories);
         renderPortfolio();
       };
@@ -1534,12 +1852,79 @@
    */
   function renderPortfolio() {
     const grid = document.getElementById('projectsCanvas');
+    const subfolderContainer = document.getElementById('subfolderViewContainer');
     if (!grid || !portfolioData) return;
+
+    const allFolders = getAvailableFolders();
+
+    // 1. Manage Subfolder & Breadcrumb navigation
+    if (subfolderContainer) {
+      if (activeSubfolderId) {
+        // Drilled down into folder
+        subfolderContainer.innerHTML = `
+          <div class="breadcrumb-nav">
+            <button class="btn-breadcrumb-back" onclick="exitSubfolder()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+              <span>Back to ${escapeHtml(activeCategory === 'All' ? 'All Works' : activeCategory)}</span>
+            </button>
+            <div class="breadcrumb-trail">
+              <span>${escapeHtml(activeCategory === 'All' ? 'Portfolio' : activeCategory)}</span>
+              <span class="breadcrumb-sep">/</span>
+              <span class="breadcrumb-active">${escapeHtml(activeSubfolderName || 'Folder')}</span>
+            </div>
+          </div>
+        `;
+      } else {
+        // At category root or All
+        let foldersToDisplay = allFolders;
+        if (activeCategory !== 'All') {
+          foldersToDisplay = foldersToDisplay.filter(f => f.category === activeCategory);
+        }
+
+        if (foldersToDisplay.length > 0 && !searchQuery) {
+          subfolderContainer.innerHTML = `
+            <div class="subfolders-section">
+              <div class="subfolders-header">
+                <div class="subfolders-title">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>${activeCategory === 'All' ? 'Folders & Collections' : activeCategory + ' Folders'}</span>
+                </div>
+              </div>
+              <div class="subfolders-grid">
+                ${foldersToDisplay.map(f => renderFinderFolderCard(f)).join('')}
+              </div>
+            </div>
+          `;
+        } else {
+          subfolderContainer.innerHTML = '';
+        }
+      }
+    }
 
     let items = [...(portfolioData.items || [])];
 
+    // Filter by Subfolder if active
+    if (activeSubfolderId) {
+      items = items.filter(item => item.subfolderId === activeSubfolderId);
+      // If demo folder and no tagged items yet, show category items for demonstration
+      if (items.length === 0 && activeSubfolderId.startsWith('folder-')) {
+        items = [...(portfolioData.items || [])];
+      }
+    } else {
+      // If root category has subfolders, filter out items that belong to a subfolder
+      const hasSubfolders = allFolders.some(f => activeCategory === 'All' || f.category === activeCategory);
+      if (hasSubfolders && (portfolioData.folders && portfolioData.folders.length > 0)) {
+        items = items.filter(item => !item.subfolderId);
+      }
+    }
+
     // 1. Filter by Category
-    if (activeCategory !== 'All') {
+    if (activeCategory !== 'All' && !activeSubfolderId) {
       items = items.filter(item => item.category === activeCategory);
     }
 
@@ -1574,7 +1959,7 @@
     filteredItems = items;
 
     if (items.length === 0) {
-      const isFiltered = activeCategory !== 'All' || activeType !== 'all' || searchQuery.trim() !== '';
+      const isFiltered = activeCategory !== 'All' || activeType !== 'all' || searchQuery.trim() !== '' || activeSubfolderId;
       grid.innerHTML = `
         <div class="gallery-empty">
           <svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1582,8 +1967,8 @@
             <circle cx="8.5" cy="8.5" r="1.5"></circle>
             <polyline points="21 15 16 10 5 21"></polyline>
           </svg>
-          <h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 6px;">${isFiltered ? 'No projects found' : 'No assets uploaded yet'}</h4>
-          <p style="font-size: 0.9rem;">${isFiltered ? 'Try selecting another category or adjusting your search term.' : 'Drop your motion graphics reels, video edits, designs, or PDFs into your folder to showcase them here.'}</p>
+          <h4 style="font-size: 1.1rem; color: var(--text-primary); margin-bottom: 6px;">${isFiltered ? 'No projects found in this view' : 'No assets uploaded yet'}</h4>
+          <p style="font-size: 0.9rem;">${isFiltered ? 'Try selecting another folder or adjusting your search filter.' : 'Drop your motion graphics reels, video edits, designs, or PDFs into your folder to showcase them here.'}</p>
         </div>
       `;
       return;
