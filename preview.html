@@ -1323,14 +1323,6 @@
             <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
           </svg>
         </button>
-
-        <a href="admin.html" class="btn-action btn-action-outline" style="padding: 7px 13px; gap: 6px; font-weight: 600;" title="Portfolio Admin Management">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-          </svg>
-          <span>Admin</span>
-        </a>
       </div>
     </div>
   </div>
@@ -1494,45 +1486,13 @@
   let activeSubfolderName = null;
 
   /**
-   * Returns folders from portfolio data or sample demonstration folders
+   * Returns folders from portfolio data
    */
   function getAvailableFolders() {
     if (portfolioData && Array.isArray(portfolioData.folders) && portfolioData.folders.length > 0) {
       return portfolioData.folders;
     }
-    // High-fidelity demonstration folders if no Drive subfolders have been indexed yet
-    return [
-      {
-        id: 'folder-nike-commercial',
-        name: 'Nike 3D Kinetic Reel',
-        category: 'Ai',
-        type: 'folder',
-        itemCount: 4,
-        itemsCountText: '4 projects',
-        color: '#ff5e3a',
-        logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/a/a6/Logo_NIKE.svg'
-      },
-      {
-        id: 'folder-apple-commercial',
-        name: 'Apple Vision Pro Campaign',
-        category: 'Ai',
-        type: 'folder',
-        itemCount: 3,
-        itemsCountText: '3 projects',
-        color: '#0a84ff',
-        logoUrl: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg'
-      },
-      {
-        id: 'folder-brand-studio',
-        name: 'Motion Ident & Title Sequences',
-        category: 'Ai',
-        type: 'folder',
-        itemCount: 5,
-        itemsCountText: '5 projects',
-        color: '#8b5cf6',
-        logoUrl: ''
-      }
-    ];
+    return [];
   }
 
   function enterSubfolder(folderId, folderName, category) {
@@ -1911,10 +1871,6 @@
     // Filter by Subfolder if active
     if (activeSubfolderId) {
       items = items.filter(item => item.subfolderId === activeSubfolderId);
-      // If demo folder and no tagged items yet, show category items for demonstration
-      if (items.length === 0 && activeSubfolderId.startsWith('folder-')) {
-        items = [...(portfolioData.items || [])];
-      }
     } else {
       // If root category has subfolders, filter out items that belong to a subfolder
       const hasSubfolders = allFolders.some(f => activeCategory === 'All' || f.category === activeCategory);
